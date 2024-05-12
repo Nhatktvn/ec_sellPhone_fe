@@ -1,0 +1,46 @@
+import axios, { AxiosError, AxiosInstance } from 'axios'
+import { toast } from 'react-toastify'
+
+class Http {
+  instance: AxiosInstance
+  constructor() {
+    this.instance = axios.create({
+      baseURL: 'http://localhost:8080/api',
+      timeout: 10000,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    this.instance.interceptors.request.use(
+      function (config) {
+        const token = localStorage.getItem('accessToken')
+
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`
+        }
+        return config
+      },
+      function (error) {
+        return Promise.reject(error)
+      }
+    )
+
+    // Add a response interceptor
+    this.instance.interceptors.response.use(
+      function (response) {
+        console.log('okok')
+
+        return response
+      },
+      function (error: AxiosError) {
+        if (error.response?.status !== 422) {
+          const data: any | undefined = error.response?.data
+          toast.error(data)
+        }
+        return Promise.reject(error)
+      }
+    )
+  }
+}
+const http = new Http().instance
+export default http

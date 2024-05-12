@@ -1,0 +1,125 @@
+import React, { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { toast } from 'react-toastify'
+import { FaUpload } from 'react-icons/fa6'
+
+interface variant {
+  color: string
+  storageCapacity: string
+  price: number
+}
+const AddNewCategory = () => {
+  const [newVariant, setNewVariant] = useState<variant>({ color: '', storageCapacity: '', price: 0 })
+  const [imageThumb, setImageThumb] = useState<string | ArrayBuffer | null>()
+  const [name,setName] = useState<string>("")
+  const 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files && e.target.files[0]
+    const reader = new FileReader()
+    reader.onload = () => {
+      console.log(reader.result)
+      setImageThumb(reader.result)
+    }
+    if (selectedFile) {
+      reader.readAsDataURL(selectedFile)
+    }
+  }
+
+  const handleCreateVariant = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setNewVariant((prevNewVariant) => ({
+      ...prevNewVariant,
+      [name]: value
+    }))
+  }
+
+  const handleAddListVariant = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (newVariant.color === '' || newVariant.storageCapacity === '' || newVariant.price == 0) {
+      toast.error('Vui lòng nhập đầy đủ thông tin')
+      return
+    }
+
+    setListVariant((prevData) => {
+      if (prevData && prevData.length > 0) {
+        return [...prevData, newVariant]
+      } else {
+        return [newVariant]
+      }
+    })
+  }
+
+  const handleRemoveVariant = (idx: number) => {
+    console.log(idx)
+    const arrayTmp: variant[] = listVariant
+    arrayTmp.splice(idx, 1)
+    setListVariant([...arrayTmp])
+  }
+
+  return (
+    <div className='my-10 w-[70%] mx-auto'>
+      <div className=' grid grid-cols-12 gap-3'>
+        <div className='flex flex-col gap-1 col-span-6'>
+          <label className='font-medium text-lg' htmlFor='name'>
+            Name:
+          </label>
+          <input
+            placeholder='Enter name...'
+            className='border h-8 px-2 border-gray-500 rounded-md'
+            type='text'
+            id='name'
+            name='name'
+          />
+        </div>
+        <div className='flex flex-col gap-1 col-span-12'>
+          <label className='font-medium text-lg' htmlFor='imageThumb'>
+            Image:
+          </label>
+          <div className='w-full h-[150px] flex justify-center'>
+            <label
+              className={`cursor-pointer font-medium h-[150px] w-[150px] flex justify-center items-center text-xl rounded-3xl ${!imageThumb && 'border-4 border-dashed'} active:scale-95 duration-100`}
+              htmlFor='imageThumb'
+            >
+              {imageThumb ? (
+                <img src={imageThumb as string} alt='Preview' style={{ maxWidth: '150px', maxHeight: '150px' }} />
+              ) : (
+                <div className='text-slate-400 text-3xl'>
+                  <FaUpload />
+                </div>
+              )}
+            </label>
+            <input
+              accept='image/*'
+              placeholder='Enter available...'
+              className='border h-8 px-2 border-gray-500 rounded-md hidden'
+              type='file'
+              id='imageThumb'
+              name='imageThumb'
+              onChange={handleImageChange}
+            />
+          </div>
+        </div>
+        <div className='flex flex-col h-max gap-1 col-span-12'>
+          <label className='font-medium text-lg' htmlFor='name'>
+            Description:
+          </label>
+          <textarea
+            placeholder='Enter description...'
+            className='border px-2 border-gray-500 rounded-md min-h-[200px] py-1'
+            id='name'
+            name='name'
+          ></textarea>
+        </div>
+      </div>
+      <div className='flex gap-5 float-end font-medium my-5'>
+        <button className='w-[65px] bg-slate-400 text-white py-3 rounded-md hover:bg-slate-500 hover:font-bold '>
+          Cancel
+        </button>
+        <button className='w-[65px] bg-blue-500 text-white py-3 rounded-md hover:bg-blue-600 hover:font-bold'>
+          Add
+        </button>
+      </div>
+    </div>
+  )
+}
+export default AddNewCategory
