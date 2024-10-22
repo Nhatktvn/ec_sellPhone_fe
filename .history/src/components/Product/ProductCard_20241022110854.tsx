@@ -3,7 +3,6 @@ import { TbCategoryPlus } from 'react-icons/tb'
 import { product } from '../../types/product.type'
 import { useState } from 'react'
 import ModalProduct from '../modalProduct'
-import formatToVND from '../../helpers/currencyFormatter'
 interface props {
   product: product
   className: String
@@ -14,10 +13,9 @@ function ProductCart({ product, className }: props) {
     const arrLink = namePhone.toLowerCase().split(' ')
     return arrLink.join('-')
   }
+
   return (
-    <div
-      className={`${className} bg-white rounded-xl shadow-md mb-3 relative group overflow-hidden flex-col justify-between w-full`}
-    >
+    <div className={`${className} bg-white rounded-xl shadow-md mb-3 relative group overflow-hidden`}>
       {product.variantDTOList[0].originalPrice > product.variantDTOList[0].sellPrice ? (
         <span className='absolute z-10 bg-orange text-white text-xs p-1 top-3 rounded-r-full shadow-sm shadow-white'>
           Giảm{' '}
@@ -38,7 +36,7 @@ function ProductCart({ product, className }: props) {
       >
         <TbCategoryPlus />
       </div>
-      <div className='mt-2 overflow-hidden group p-2'>
+      <div className='mt-2 overflow-hidden group p-2 flex'>
         <img className='w-full h-full group-hover:scale-110 duration-500 ease-out' src={product.urlImage} alt='' />
       </div>
       <div className='p-2'>
@@ -77,5 +75,8 @@ function ProductCart({ product, className }: props) {
       {showModal ? <ModalProduct product={product} setShowModal={setShowModal} /> : null}
     </div>
   )
+}
+function formatToVND(number: number) {
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Math.floor(number / 1000) * 1000)
 }
 export default ProductCart

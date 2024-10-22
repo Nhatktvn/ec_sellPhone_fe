@@ -20,8 +20,6 @@ import { CiHeart } from 'react-icons/ci'
 import { RootState } from '../../reducer/rootReducer'
 import { addFavourite, deleteFavourite, getAllFavourite } from '../../apis/favourite.api'
 import Specifacation from '../../components/Specifications'
-import formatToVND from '../../helpers/currencyFormatter'
-import { getAvailable } from '../../apis/variant.api'
 interface objVariant {
   [key: string]: storagePrice[]
 }
@@ -45,7 +43,6 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState<number>(1)
   const [listFavourite, setListFavourite] = useState<product[]>([])
   const [showContent, setShowContent] = useState(false)
-  const [availableProduct, setAvailableProduct] = useState()
   const handleSelectedImage = (e: React.MouseEvent<HTMLDivElement, MouseEvent>, linkImage: string) => {
     setImagePreview(linkImage)
     document.querySelectorAll('.container-image').forEach((child) => {
@@ -61,12 +58,8 @@ const ProductDetail = () => {
   }, [])
   useEffect(() => {
     handleGetVariant()
-    product && addProductToLocalStorage(product)
   }, [product])
 
-  useEffect(() => {
-    handleGetAvalable()
-  }, [colorSelect, storageSelect])
   const star = product && product.rate > 0 ? (product.rate * 100) / 5 : 0
 
   const getDetailProduct = async () => {
@@ -82,38 +75,12 @@ const ProductDetail = () => {
   }
 
   const addProductToLocalStorage = (product: product) => {
-    const viewHistoryStr = localStorage.getItem('historyView')
-    const listHistoryView: object[] = viewHistoryStr ? JSON.parse(viewHistoryStr) : []
-    const productViewNow = {
-      id: product.id,
-      img: product.urlImage,
-      name: product.name,
-      price: product.variantDTOList[0].sellPrice
+    const 
+    const listHistoryView: object[] = JSON.parse(localStorage.getItem('historyView'))
+    if (listHistoryView && listHistoryView.length == 0) {
+      listHistoryView.unshift({})
     }
-    // const index = listHistoryView.some((item: any) => item.id === productViewNow.id)
-    const index = listHistoryView.findIndex((element: any) => element.id === productViewNow.id)
-    // Nếu object đã tồn tại, xóa nó khỏi mảng
-    if (index !== -1) {
-      listHistoryView.splice(index, 1)
-    }
-    // Thêm object vào đầu mảng
-    listHistoryView.unshift(productViewNow)
-    localStorage.setItem('historyView', JSON.stringify(listHistoryView))
   }
-
-  const handleGetAvalable = async () => {
-    try {
-      const data = { color: colorSelect, storage: storageSelect, productId: product?.id }
-      const fetchGetAvailable = await getAvailable(data)
-      if (fetchGetAvailable && fetchGetAvailable.status == 200) {
-        console.log(fetchGetAvailable.data)
-
-        setAvailableProduct(fetchGetAvailable.data.available)
-      }
-    } catch (error) {}
-  }
-
-  console.log(availableProduct)
 
   const handleGetListFavourite = async () => {
     try {
@@ -343,7 +310,7 @@ const ProductDetail = () => {
                 </div>
                 <div className='grid grid-cols-12 mt-7 ml-3'>
                   <div className='col-span-2 text-sm text-gray-500'>Số lượng</div>
-                  <div className='col-span-10 flex-col items-center'>
+                  <div className='col-span-10 flex items-center gap-3'>
                     <div className='flex rounded-sm overflow-hidden'>
                       <button className='border py-1 px-3' onClick={() => quantity > 1 && setQuantity(quantity - 1)}>
                         -
@@ -358,12 +325,7 @@ const ProductDetail = () => {
                         +
                       </button>
                     </div>
-                    {availableProduct && availableProduct <= 50 && (
-                      <span className='text-sm text-red-500 font-bold block mt-3'>
-                        Hàng sắp hết{' '}
-                        <span className='text-gray-400 font-normal'>{`(${product.variantDTOList[0].available} sản phẩm)`}</span>
-                      </span>
-                    )}
+                    <span className='text-gray-500 text-sm'>{product.variantDTOList[0].available} sản phẩm có sẵn</span>
                   </div>
                 </div>
                 <div className='mt-10 ml-3 w-max'>
@@ -444,6 +406,9 @@ const ProductDetail = () => {
       )}
     </>
   )
+}
+function formatToVND(number: number) {
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(number)
 }
 
 export default ProductDetail

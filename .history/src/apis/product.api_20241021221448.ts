@@ -8,7 +8,7 @@ export const getProductsByCate = (data: string | undefined) => http.get(`/produc
 export const getSuggetProduct = (data: string) => http.get(`/product/suggest-products?keyName=${data}`)
 export const getSearchProduct = (data: string | null) => http.get(`/products/search?searchName=${data}`)
 export const deleteProductById = (data: number | null) => http.delete(`/admin/products/${data}`)
-export const getProductByIds = (data: number[] | null) => http.post(`/product/by-ids`, data)
+export const deleteProductById = (data: number | null) => http.post(`/product/by`)
 export const addProduct = (data: FormData) =>
   http.post('/admin/products', data, {
     headers: {

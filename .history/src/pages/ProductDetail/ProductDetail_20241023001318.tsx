@@ -64,9 +64,6 @@ const ProductDetail = () => {
     product && addProductToLocalStorage(product)
   }, [product])
 
-  useEffect(() => {
-    handleGetAvalable()
-  }, [colorSelect, storageSelect])
   const star = product && product.rate > 0 ? (product.rate * 100) / 5 : 0
 
   const getDetailProduct = async () => {
@@ -343,7 +340,7 @@ const ProductDetail = () => {
                 </div>
                 <div className='grid grid-cols-12 mt-7 ml-3'>
                   <div className='col-span-2 text-sm text-gray-500'>Số lượng</div>
-                  <div className='col-span-10 flex-col items-center'>
+                  <div className='col-span-10 flex items-center gap-3'>
                     <div className='flex rounded-sm overflow-hidden'>
                       <button className='border py-1 px-3' onClick={() => quantity > 1 && setQuantity(quantity - 1)}>
                         -
@@ -358,12 +355,7 @@ const ProductDetail = () => {
                         +
                       </button>
                     </div>
-                    {availableProduct && availableProduct <= 50 && (
-                      <span className='text-sm text-red-500 font-bold block mt-3'>
-                        Hàng sắp hết{' '}
-                        <span className='text-gray-400 font-normal'>{`(${product.variantDTOList[0].available} sản phẩm)`}</span>
-                      </span>
-                    )}
+                    <span className='text-gray-500 text-sm'>{product.variantDTOList[0].available} sản phẩm có sẵn</span>
                   </div>
                 </div>
                 <div className='mt-10 ml-3 w-max'>

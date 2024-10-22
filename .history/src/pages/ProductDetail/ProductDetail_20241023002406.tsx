@@ -359,9 +359,9 @@ const ProductDetail = () => {
                       </button>
                     </div>
                     {availableProduct && availableProduct <= 50 && (
-                      <span className='text-sm text-red-500 font-bold block mt-3'>
+                      <span className='text-sm text-red-500 font-bold block mt-4'>
                         Hàng sắp hết{' '}
-                        <span className='text-gray-400 font-normal'>{`(${product.variantDTOList[0].available} sản phẩm)`}</span>
+                        <span className='text-gray-400'>{`(${product.variantDTOList[0].available} sản phẩm)`}</span>
                       </span>
                     )}
                   </div>
