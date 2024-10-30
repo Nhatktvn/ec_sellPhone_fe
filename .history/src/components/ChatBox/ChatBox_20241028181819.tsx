@@ -33,7 +33,7 @@ function ChatBox(props: Props) {
   }, [props.messages])
 
   useEffect(() => {
-    questionChatAi && handleFetchOpenAi(questionChatAi)
+    handleFetchOpenAi(questionChatAi)
   }, [questionChatAi])
   useEffect(() => {
     console.log('okokok')
@@ -50,14 +50,11 @@ function ChatBox(props: Props) {
       case 'Đã chuyển đến trang chủ.':
         navigation('/')
         break
-      case 'Đã chuyển đến trang đăng nhập.':
+      case 'Đã chuyển đến đăng nhập.':
         navigation('/dang-nhap')
         break
-      case 'Đã chuyển đến trang đăng ký.':
+      case 'Đã chuyển đến đăng kí.':
         navigation('/dang-ki')
-        break
-      case 'Đã chuyển đến trang điện thoại.':
-        navigation('/điện thoại')
         break
       default:
         break
@@ -93,7 +90,6 @@ function ChatBox(props: Props) {
           avatar: <FaRobot className='w-8 h-8 rounded-full object-cover mx-2' />
         }
         props.setMessages([...props.messages, newMsg])
-        setQuestionChatAi('')
         setMessageChatBot(fetchApi.data.choices[0].message.content)
       }
       setIsLoading(false)

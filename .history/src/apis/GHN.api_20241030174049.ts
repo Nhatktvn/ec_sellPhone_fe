@@ -44,7 +44,7 @@ interface createOrder {
   cod_amount: number
   items: any[]
 }
-export const createOrderGHN = (data: createOrder) =>
+export const createOrderGHN = (data: createOrder) => 
   http.post('/v2/shipping-order/create', {
     payment_type_id: 2,
     note: 'Tintest 123',
@@ -65,7 +65,7 @@ export const createOrderGHN = (data: createOrder) =>
     to_address: data.to_address,
     to_ward_code: data.to_ward_code,
     to_district_id: data.to_district_id,
-    cod_amount: data.cod_amount,
+    cod_amount: cod_amount,
     content: 'Theo Viet Nam Times',
     height: 50,
     length: 20,
@@ -78,5 +78,6 @@ export const createOrderGHN = (data: createOrder) =>
     service_type_id: data.service_type_id,
     coupon: null,
     pick_shift: [2],
-    items: data.items
+    items: dataItems
   })
+}

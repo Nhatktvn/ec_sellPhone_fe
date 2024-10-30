@@ -6,7 +6,7 @@ export const getResponseChatAI = (message: string) =>
     messages: [
       {
         role: 'user',
-        content: `${message}. Nếu câu hỏi có nội dung muốn chuyển trang thì chỉ thông báo đã chuyển trang đó`
+        content: `${message}. Nếu câu hỏi muốn chuyển trang thì chỉ thông báo đã chuyển trang đó`
       }
     ]
   })

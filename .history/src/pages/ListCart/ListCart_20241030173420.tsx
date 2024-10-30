@@ -51,7 +51,6 @@ interface createOrder {
   to_district_id: number
   service_id: number
   service_type_id: number
-  cod_amount: number
   items: cartItem[]
 }
 
@@ -172,8 +171,6 @@ export default function ListCart() {
       dispatch(loading(true))
       const rsGetProvince = await getAllProvince()
       if (rsGetProvince && rsGetProvince.status == 200) {
-        console.log(rsGetProvince)
-
         const dtProvince = rsGetProvince.data.data.sort(function (a: dataProvince, b: dataProvince) {
           return a.ProvinceName.localeCompare(b.ProvinceName)
         })
@@ -303,7 +300,7 @@ export default function ListCart() {
       console.log(addressTmp)
       if (typePayment === 'cod') {
         const rsOrderCod = await orderCod({
-          codeOrder: codeOrder,
+          idOrder: codeOrder,
           provinceAddress: addressNameDelivery.provinceName,
           districtAddress: addressNameDelivery.districtName,
           wardAddress: addressNameDelivery.districtName,
@@ -343,27 +340,6 @@ export default function ListCart() {
           serviceTypeId = Number(s.service_type_id)
         }
       })
-
-      const dataItems: any = []
-      let sumAmount = 0
-      cartItems.map((p, idx) => {
-        sumAmount = sumAmount + p.sellPrice * p.quantity
-        const item = {
-          name: `${p.name} ${p.color} ${p.storageCapacity}`,
-          code: JSON.stringify(p.id),
-          quantity: p.quantity,
-          price: p.sellPrice,
-          length: 12,
-          width: 12,
-          height: 12,
-          weight: 1200,
-          category: {
-            level1: 'điện thoại'
-          }
-        }
-        dataItems.push(item)
-      })
-
       const data: createOrder = {
         to_name: nameDelivery,
         to_phone: phoneDelivery,
@@ -372,15 +348,14 @@ export default function ListCart() {
         to_district_id: addressCodeDelivery.districtName,
         service_id: serviceDelivery,
         service_type_id: serviceTypeId,
-        cod_amount: sumAmount,
-        items: dataItems
+        items: cartItems
       }
       const apicreateOrder = await createOrderGHN(data)
-
-      if (apicreateOrder && apicreateOrder.status == 200) {
-        // console.log(apicreateOrder.data.data.order_code)
-        await handleOrder(apicreateOrder.data.data.order_code)
-      }
+      console.log(apicreateOrder)
+      // if (apicreateOrder && apicreateOrder.status == 200) {
+      //   console.log(apicreateOrder.data.order_code)
+      //   // handleOrder(apicreateOrder.data.order_code)
+      // }
     } catch (error) {
       console.log(error)
     }

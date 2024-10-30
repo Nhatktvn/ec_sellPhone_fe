@@ -12,7 +12,7 @@ import { orderCod, orderVnpay } from '../../apis/order.api'
 import formatToVND from '../../helpers/currencyFormatter'
 import ModalInformInStock from '../../components/Modal/ModalInformInStock'
 import { loading } from '../../slices/loadingSlice'
-import { createOrderGHN, getFeeDelivery, getServiceDelivery } from '../../apis/GHN.api'
+import { getFeeDelivery, getServiceDelivery } from '../../apis/GHN.api'
 interface dataProvince {
   ProvinceID: number
   ProvinceName: string
@@ -43,28 +43,14 @@ interface checkStock {
   available: number
 }
 
-interface createOrder {
-  to_name: string
-  to_phone: string
-  to_address: string
-  to_ward_code: string
-  to_district_id: number
-  service_id: number
-  service_type_id: number
-  cod_amount: number
-  items: cartItem[]
-}
+interface serviceDelivery {}
 
-interface serviceDelivery {
-  service_id: number
-  service_type_id: number
-}
 export default function ListCart() {
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated)
   const isloading = useSelector((state: RootState) => state.loading.isLoading)
   const [listProvince, setListProvince] = useState<dataProvince[]>([])
   const [listDistrict, setListDistrict] = useState<dataDistrict[]>([])
-  const [cartItems, setCartItems] = useState<cartItem[]>([])
+  const [cartItems, setCartItems] = useState<cartItem[]>()
   const [fee, setFee] = useState<number>(0)
   const [listServiceDelivery, setListServiceDelivery] = useState([])
   const [typePayment, setTypePayment] = useState<string>('cod')
@@ -78,6 +64,8 @@ export default function ListCart() {
     provinceName: 0,
     wardName: 0
   })
+  console.log(cartItems)
+
   const [listWard, setListWard] = useState<dataWard[]>([])
   const [addressNameDelivery, setAddressNameDelivery] = useState<addressName>({
     districtName: '',
@@ -172,8 +160,6 @@ export default function ListCart() {
       dispatch(loading(true))
       const rsGetProvince = await getAllProvince()
       if (rsGetProvince && rsGetProvince.status == 200) {
-        console.log(rsGetProvince)
-
         const dtProvince = rsGetProvince.data.data.sort(function (a: dataProvince, b: dataProvince) {
           return a.ProvinceName.localeCompare(b.ProvinceName)
         })
@@ -259,15 +245,8 @@ export default function ListCart() {
 
   const handleCalculateFee = async () => {
     try {
-      let serviceTypeId: number = 0
-      listServiceDelivery.map((s: any, idx) => {
-        if (s.service_id == serviceDelivery) {
-          serviceTypeId = Number(s.service_type_id)
-        }
-      })
       const data: any = {
         service_id: serviceDelivery,
-        service_type_id: serviceTypeId,
         to_district_id: addressCodeDelivery.districtName,
         to_ward_code: JSON.stringify(addressCodeDelivery.wardName),
         insurance_value:
@@ -287,13 +266,12 @@ export default function ListCart() {
     }
   }
 
-  const handleOrder = async (codeOrder: string) => {
+  const handleOrder = async () => {
     try {
       dispatch(loading(true))
       const addressTmp = Object.values(addressNameDelivery).join(', ')
       console.log(addressTmp)
       const formData = new FormData()
-      formData.append('idOrder', codeOrder)
       formData.append('provinceAddress', addressNameDelivery.provinceName)
       formData.append('districtAddress', addressNameDelivery.districtName)
       formData.append('wardAddress', addressNameDelivery.districtName)
@@ -303,7 +281,6 @@ export default function ListCart() {
       console.log(addressTmp)
       if (typePayment === 'cod') {
         const rsOrderCod = await orderCod({
-          codeOrder: codeOrder,
           provinceAddress: addressNameDelivery.provinceName,
           districtAddress: addressNameDelivery.districtName,
           wardAddress: addressNameDelivery.districtName,
@@ -315,7 +292,6 @@ export default function ListCart() {
           toast.success('Thanh toán thành công')
           getCountCart()
         }
-        // fetchCreateOrderGHN()
       } else {
         const totalPrice =
           cartItems &&
@@ -334,57 +310,7 @@ export default function ListCart() {
       dispatch(loading(false))
     }
   }
-
-  const fetchCreateOrderGHN = async () => {
-    try {
-      let serviceTypeId: number = 0
-      listServiceDelivery.map((s: any, idx) => {
-        if (s.service_id == serviceDelivery) {
-          serviceTypeId = Number(s.service_type_id)
-        }
-      })
-
-      const dataItems: any = []
-      let sumAmount = 0
-      cartItems.map((p, idx) => {
-        sumAmount = sumAmount + p.sellPrice * p.quantity
-        const item = {
-          name: `${p.name} ${p.color} ${p.storageCapacity}`,
-          code: JSON.stringify(p.id),
-          quantity: p.quantity,
-          price: p.sellPrice,
-          length: 12,
-          width: 12,
-          height: 12,
-          weight: 1200,
-          category: {
-            level1: 'điện thoại'
-          }
-        }
-        dataItems.push(item)
-      })
-
-      const data: createOrder = {
-        to_name: nameDelivery,
-        to_phone: phoneDelivery,
-        to_address: addressNameDelivery.street,
-        to_ward_code: JSON.stringify(addressCodeDelivery.wardName),
-        to_district_id: addressCodeDelivery.districtName,
-        service_id: serviceDelivery,
-        service_type_id: serviceTypeId,
-        cod_amount: sumAmount,
-        items: dataItems
-      }
-      const apicreateOrder = await createOrderGHN(data)
-
-      if (apicreateOrder && apicreateOrder.status == 200) {
-        // console.log(apicreateOrder.data.data.order_code)
-        await handleOrder(apicreateOrder.data.data.order_code)
-      }
-    } catch (error) {
-      console.log(error)
-    }
-  }
+  console.log('list', listServiceDelivery)
   const FetchServiceDelivery = async () => {
     try {
       const fetchService = await getServiceDelivery(addressCodeDelivery.districtName)
@@ -654,7 +580,7 @@ export default function ListCart() {
           </div>
           <button
             className='bg-orange w-full p-3 mt-4 rounded-md text-white font-bold text-xl uppercase hover:opacity-85 active:scale-95 duration-150'
-            onClick={fetchCreateOrderGHN}
+            onClick={handleOrder}
           >
             Thanh toán
           </button>

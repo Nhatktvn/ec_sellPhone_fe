@@ -172,8 +172,6 @@ export default function ListCart() {
       dispatch(loading(true))
       const rsGetProvince = await getAllProvince()
       if (rsGetProvince && rsGetProvince.status == 200) {
-        console.log(rsGetProvince)
-
         const dtProvince = rsGetProvince.data.data.sort(function (a: dataProvince, b: dataProvince) {
           return a.ProvinceName.localeCompare(b.ProvinceName)
         })
@@ -303,7 +301,7 @@ export default function ListCart() {
       console.log(addressTmp)
       if (typePayment === 'cod') {
         const rsOrderCod = await orderCod({
-          codeOrder: codeOrder,
+          idOrder: codeOrder,
           provinceAddress: addressNameDelivery.provinceName,
           districtAddress: addressNameDelivery.districtName,
           wardAddress: addressNameDelivery.districtName,
@@ -376,10 +374,11 @@ export default function ListCart() {
         items: dataItems
       }
       const apicreateOrder = await createOrderGHN(data)
+      console.log(apicreateOrder)
 
       if (apicreateOrder && apicreateOrder.status == 200) {
         // console.log(apicreateOrder.data.data.order_code)
-        await handleOrder(apicreateOrder.data.data.order_code)
+        handleOrder(apicreateOrder.data.data.order_code)
       }
     } catch (error) {
       console.log(error)

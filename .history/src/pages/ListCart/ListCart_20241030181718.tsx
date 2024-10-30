@@ -303,7 +303,7 @@ export default function ListCart() {
       console.log(addressTmp)
       if (typePayment === 'cod') {
         const rsOrderCod = await orderCod({
-          codeOrder: codeOrder,
+          id: '1',
           provinceAddress: addressNameDelivery.provinceName,
           districtAddress: addressNameDelivery.districtName,
           wardAddress: addressNameDelivery.districtName,

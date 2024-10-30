@@ -33,7 +33,7 @@ function ChatBox(props: Props) {
   }, [props.messages])
 
   useEffect(() => {
-    questionChatAi && handleFetchOpenAi(questionChatAi)
+    handleFetchOpenAi(questionChatAi)
   }, [questionChatAi])
   useEffect(() => {
     console.log('okokok')

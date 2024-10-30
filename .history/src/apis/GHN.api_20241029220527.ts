@@ -1,4 +1,3 @@
-import { cartItem } from '../types/cart.type'
 import { product } from '../types/product.type'
 import http from '../utils/httpAddressGHN'
 
@@ -11,7 +10,6 @@ export const getServiceDelivery = (district_id: number) =>
 
 interface calculateFee {
   service_id: number
-  service_type_id: number
   to_district_id: number
   to_ward_code: string
   insurance_value: number
@@ -21,14 +19,14 @@ export const getFeeDelivery = (data: calculateFee) =>
     from_district_id: 3695,
     from_ward_code: '90752',
     service_id: data.service_id,
-    service_type_id: data.service_type_id,
+    service_type_id: 2,
     to_district_id: data.to_district_id,
     to_ward_code: data.to_ward_code,
     height: 50,
     length: 20,
     weight: 1000,
     width: 20,
-    insurance_value: 0,
+    insurance_value: 5000000,
     cod_failed_amount: 2000,
     coupon: null
   })
@@ -39,10 +37,7 @@ interface createOrder {
   to_address: string
   to_ward_code: string
   to_district_id: number
-  service_id: number
-  service_type_id: number
-  cod_amount: number
-  items: any[]
+  items: product[]
 }
 export const createOrderGHN = (data: createOrder) =>
   http.post('/v2/shipping-order/create', {
@@ -65,18 +60,32 @@ export const createOrderGHN = (data: createOrder) =>
     to_address: data.to_address,
     to_ward_code: data.to_ward_code,
     to_district_id: data.to_district_id,
-    cod_amount: data.cod_amount,
-    content: 'Theo Viet Nam Times',
-    height: 50,
-    length: 20,
-    weight: 1000,
-    width: 20,
-    pick_station_id: data.to_district_id,
+    cod_amount: 200000,
+    content: 'Theo New York Times',
+    weight: 100,
+    length: 1,
+    width: 19,
+    height: 10,
+    pick_station_id: 1444,
     deliver_station_id: null,
     insurance_value: 0,
-    service_id: data.service_id,
-    service_type_id: data.service_type_id,
+    service_id: 0,
+    service_type_id: 2,
     coupon: null,
     pick_shift: [2],
-    items: data.items
+    items: [
+      {
+        name: 'Áo Polo',
+        code: 'Polo123',
+        quantity: 1,
+        price: 200000,
+        length: 12,
+        width: 12,
+        height: 12,
+        weight: 1200,
+        category: {
+          level1: 'Áo'
+        }
+      }
+    ]
   })

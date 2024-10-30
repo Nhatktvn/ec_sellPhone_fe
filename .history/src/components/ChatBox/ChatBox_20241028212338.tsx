@@ -33,7 +33,7 @@ function ChatBox(props: Props) {
   }, [props.messages])
 
   useEffect(() => {
-    questionChatAi && handleFetchOpenAi(questionChatAi)
+    newMessage !== '' && handleFetchOpenAi(questionChatAi)
   }, [questionChatAi])
   useEffect(() => {
     console.log('okokok')
@@ -93,7 +93,7 @@ function ChatBox(props: Props) {
           avatar: <FaRobot className='w-8 h-8 rounded-full object-cover mx-2' />
         }
         props.setMessages([...props.messages, newMsg])
-        setQuestionChatAi('')
+        setNewMessage('')
         setMessageChatBot(fetchApi.data.choices[0].message.content)
       }
       setIsLoading(false)

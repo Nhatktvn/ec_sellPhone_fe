@@ -26,43 +26,21 @@ function ChatBox(props: Props) {
   const [isLoading, setIsLoading] = useState(false)
   const [newMessage, setNewMessage] = useState<string>('')
   const chatContainerRef = useRef<HTMLDivElement | null>(null)
-  const [messageChatBot, setMessageChatBot] = useState<string>('')
   const navigation = useNavigate()
   useEffect(() => {
     scrollToBottom()
   }, [props.messages])
 
   useEffect(() => {
-    questionChatAi && handleFetchOpenAi(questionChatAi)
+    handleFetchOpenAi(questionChatAi)
   }, [questionChatAi])
-  useEffect(() => {
-    console.log('okokok')
-    navigatePage(messageChatBot)
-    // navigatePageByAi(messageChatBot)
-  }, [messageChatBot])
+
   const scrollToBottom = () => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
     }
   }
-  const navigatePage = (contentPage: string | undefined) => {
-    switch (contentPage) {
-      case 'Đã chuyển đến trang chủ.':
-        navigation('/')
-        break
-      case 'Đã chuyển đến trang đăng nhập.':
-        navigation('/dang-nhap')
-        break
-      case 'Đã chuyển đến trang đăng ký.':
-        navigation('/dang-ki')
-        break
-      case 'Đã chuyển đến trang điện thoại.':
-        navigation('/điện thoại')
-        break
-      default:
-        break
-    }
-  }
+
   const handleSendMessage = (e: FormEvent) => {
     e.preventDefault()
     if (newMessage.trim()) {
@@ -74,6 +52,23 @@ function ChatBox(props: Props) {
         avatar: <CiUser className='w-8 h-8 rounded-full object-cover mx-2' />
       }
       props.setMessages([...props.messages, newMsg])
+      // const botTyping: Message = {
+      //   id: messages.length + 1,
+      //   text: newMessage,
+      //   sender: 'other',
+      //   timestamp: new Date().toISOString(),
+      //   avatar: (
+      //     <div className='flex gap-2 justify-center items-center'>
+      //       <FaRobot className='w-8 h-8 rounded-full object-cover mx-2' />
+      //       <div className='typing-indicator flex space-x-2'>
+      //         <div className='dot w-2 h-2 bg-gray-500 rounded-full'></div>
+      //         <div className='dot w-2 h-2 bg-gray-500 rounded-full'></div>
+      //         <div className='dot w-2 h-2 bg-gray-500 rounded-full'></div>
+      //       </div>
+      //     </div>
+      //   )
+      // }
+      // setMessages([...messages, botTyping])
       setQuestionChatAi(newMessage.trim())
       setNewMessage('')
     }
@@ -84,7 +79,7 @@ function ChatBox(props: Props) {
       setIsLoading(true)
       const fetchApi = await getResponseChatAI(content)
       if (fetchApi && fetchApi.status === 200) {
-        console.log(fetchApi.data)
+        console.log(fetchApi.data.choices[0].message.content)
         const newMsg: Message = {
           id: props.messages.length + 1,
           text: fetchApi.data.choices[0].message.content,
@@ -93,8 +88,8 @@ function ChatBox(props: Props) {
           avatar: <FaRobot className='w-8 h-8 rounded-full object-cover mx-2' />
         }
         props.setMessages([...props.messages, newMsg])
-        setQuestionChatAi('')
-        setMessageChatBot(fetchApi.data.choices[0].message.content)
+        // navigatePageByAi(fetchApi.data.choices[0].message.content)
+        // console.log(navigatePageByAi(fetchApi.data.choices[0].message.content))
       }
       setIsLoading(false)
     } catch (error) {

@@ -33,36 +33,19 @@ function ChatBox(props: Props) {
   }, [props.messages])
 
   useEffect(() => {
-    questionChatAi && handleFetchOpenAi(questionChatAi)
+    handleFetchOpenAi(questionChatAi)
   }, [questionChatAi])
   useEffect(() => {
     console.log('okokok')
-    navigatePage(messageChatBot)
-    // navigatePageByAi(messageChatBot)
+
+    navigatePageByAi(messageChatBot)
   }, [messageChatBot])
   const scrollToBottom = () => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
     }
   }
-  const navigatePage = (contentPage: string | undefined) => {
-    switch (contentPage) {
-      case 'Đã chuyển đến trang chủ.':
-        navigation('/')
-        break
-      case 'Đã chuyển đến trang đăng nhập.':
-        navigation('/dang-nhap')
-        break
-      case 'Đã chuyển đến trang đăng ký.':
-        navigation('/dang-ki')
-        break
-      case 'Đã chuyển đến trang điện thoại.':
-        navigation('/điện thoại')
-        break
-      default:
-        break
-    }
-  }
+
   const handleSendMessage = (e: FormEvent) => {
     e.preventDefault()
     if (newMessage.trim()) {
@@ -93,8 +76,9 @@ function ChatBox(props: Props) {
           avatar: <FaRobot className='w-8 h-8 rounded-full object-cover mx-2' />
         }
         props.setMessages([...props.messages, newMsg])
-        setQuestionChatAi('')
         setMessageChatBot(fetchApi.data.choices[0].message.content)
+        // navigatePageByAi(fetchApi.data.choices[0].message.content)
+        // console.log(navigatePageByAi(fetchApi.data.choices[0].message.content))
       }
       setIsLoading(false)
     } catch (error) {

@@ -28,7 +28,7 @@ export const getFeeDelivery = (data: calculateFee) =>
     length: 20,
     weight: 1000,
     width: 20,
-    insurance_value: 0,
+    insurance_value: 5000000,
     cod_failed_amount: 2000,
     coupon: null
   })
@@ -41,10 +41,28 @@ interface createOrder {
   to_district_id: number
   service_id: number
   service_type_id: number
-  cod_amount: number
-  items: any[]
+  items: cartItem[]
 }
-export const createOrderGHN = (data: createOrder) =>
+export const createOrderGHN = (data: createOrder) => {
+  const dataItems: any = []
+  let cod_amount = 0
+  data.items.map((p, idx) => {
+    cod_amount = cod_amount + p.sellPrice * p.quantity
+    const item = {
+      name: `${p.name} ${p.color} ${p.storageCapacity}`,
+      code: JSON.stringify(p.id),
+      quantity: p.quantity,
+      price: p.sellPrice,
+      length: 12,
+      width: 12,
+      height: 12,
+      weight: 1200,
+      category: {
+        level1: 'điện thoại'
+      }
+    }
+    dataItems.push(item)
+  })
   http.post('/v2/shipping-order/create', {
     payment_type_id: 2,
     note: 'Tintest 123',
@@ -65,7 +83,7 @@ export const createOrderGHN = (data: createOrder) =>
     to_address: data.to_address,
     to_ward_code: data.to_ward_code,
     to_district_id: data.to_district_id,
-    cod_amount: data.cod_amount,
+    cod_amount: cod_amount,
     content: 'Theo Viet Nam Times',
     height: 50,
     length: 20,
@@ -78,5 +96,6 @@ export const createOrderGHN = (data: createOrder) =>
     service_type_id: data.service_type_id,
     coupon: null,
     pick_shift: [2],
-    items: data.items
+    items: dataItems
   })
+}
