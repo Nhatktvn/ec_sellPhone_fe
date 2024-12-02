@@ -5,14 +5,17 @@ import { checkOutStockItem, deleteCartItem, getListCart, updateQuantityCartItem 
 import { toast } from 'react-toastify'
 import { cartList } from '../../slices/cartSlice'
 import { Link } from 'react-router-dom'
-import { getAllDitrict, getAllProvince, getAllWard, getFee } from '../../apis/address.api'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { getAllDitrict, getAllProvince, getAllWard } from '../../apis/address.api'
+import { useEffect, useState } from 'react'
 import { cartItem } from '../../types/cart.type'
 import { orderCod, orderVnpay } from '../../apis/order.api'
 import formatToVND from '../../helpers/currencyFormatter'
 import ModalInformInStock from '../../components/Modal/ModalInformInStock'
 import { loading } from '../../slices/loadingSlice'
 import { createOrderGHN, getFeeDelivery, getServiceDelivery } from '../../apis/GHN.api'
+import { getListCouponUserReceived } from '../../apis/coupon.api'
+import { Coupon } from '../../types/coupon.type'
+import ModalListCoupon from '../../components/Modal/ModalListCoupon'
 interface dataProvince {
   ProvinceID: number
   ProvinceName: string
@@ -55,12 +58,9 @@ interface createOrder {
   items: cartItem[]
 }
 
-interface serviceDelivery {
-  service_id: number
-  service_type_id: number
-}
 export default function ListCart() {
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated)
+  const user = useSelector((state: RootState) => state.auth.user)
   const isloading = useSelector((state: RootState) => state.loading.isLoading)
   const [listProvince, setListProvince] = useState<dataProvince[]>([])
   const [listDistrict, setListDistrict] = useState<dataDistrict[]>([])
@@ -73,11 +73,17 @@ export default function ListCart() {
   const [phoneDelivery, setPhoneeDelivery] = useState<string>('')
   const [listItemOutStock, setListItemOutStock] = useState<checkStock[]>([])
   const [showModalOutStock, setShowModalOutStock] = useState(false)
+  const [listCoupon, setListCoupon] = useState<Coupon[]>([])
+  const [showModalCoupon, setShowModalCoupon] = useState(false)
+  // const [couponId, setCouponId] = useState<number | null>(null)
+  const [couponChoose, setCouponChoose] = useState<Coupon | null>(null)
   const [addressCodeDelivery, setAddressCodeDelivery] = useState<addressCode>({
     districtName: 0,
     provinceName: 0,
     wardName: 0
   })
+  console.log(listCoupon)
+
   const [listWard, setListWard] = useState<dataWard[]>([])
   const [addressNameDelivery, setAddressNameDelivery] = useState<addressName>({
     districtName: '',
@@ -98,13 +104,32 @@ export default function ListCart() {
   }, [addressCodeDelivery])
   useEffect(() => {
     getCheckOutStockItem()
+    handleGetListCouponReceived()
   }, [])
+  useEffect(() => {
+    console.log('okokokokokokokokok')
+
+    // getCheckOutStockItem()
+    handleGetListCouponReceived()
+  }, [user])
   // useEffect(() => {
   //   listItemOutStock.length > 0 ? setShowModalOutStock(true) : setShowModalOutStock(false)
   // }, [listItemOutStock])
   useEffect(() => {
     handleCalculateFee()
   }, [serviceDelivery])
+
+  const handleGetListCouponReceived = async () => {
+    try {
+      const fetchApiGetCoupon = user && (await getListCouponUserReceived(user.id))
+      if (fetchApiGetCoupon && fetchApiGetCoupon.status == 200) {
+        setListCoupon(fetchApiGetCoupon.data)
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   const getCheckOutStockItem = async () => {
     try {
       dispatch(loading(true))
@@ -260,7 +285,7 @@ export default function ListCart() {
   const handleCalculateFee = async () => {
     try {
       let serviceTypeId: number = 0
-      listServiceDelivery.map((s: any, idx) => {
+      listServiceDelivery.map((s: any) => {
         if (s.service_id == serviceDelivery) {
           serviceTypeId = Number(s.service_type_id)
         }
@@ -293,53 +318,20 @@ export default function ListCart() {
       const addressTmp = Object.values(addressNameDelivery).join(', ')
       console.log(addressTmp)
       console.log(addressTmp)
-      if (typePayment === 'cod') {
-        const rsOrderCod = await orderCod({
-          codeOrder: codeOrder,
-          provinceAddress: addressNameDelivery.provinceName,
-          districtAddress: addressNameDelivery.districtName,
-          wardAddress: addressNameDelivery.districtName,
-          streetAddress: addressNameDelivery.street,
-          phone: phoneDelivery,
-          name: nameDelivery
-        })
-        if (rsOrderCod && rsOrderCod.status === 201) {
-          toast.success('Thanh toán thành công')
-          getCountCart()
-        }
-        // fetchCreateOrderGHN()
-      } else {
-        const totalPrice =
-          cartItems &&
-          cartItems?.reduce((accumulator, currentValue) => {
-            return accumulator + currentValue.sellPrice * currentValue.quantity
-          }, 0) + fee
-        const formData = new FormData()
-        formData.append('idOrder', codeOrder)
-        formData.append('provinceAddress', addressNameDelivery.provinceName)
-        formData.append('districtAddress', addressNameDelivery.districtName)
-        formData.append('wardAddress', addressNameDelivery.districtName)
-        formData.append('streetAddress', addressNameDelivery.street)
-        formData.append('name', nameDelivery)
-        formData.append('phone', phoneDelivery)
-        formData.append('toWardCode', JSON.stringify(addressCodeDelivery.wardName))
-        formData.append('toDistrictId', JSON.stringify(addressCodeDelivery.districtName))
-        formData.append('codAmount', JSON.stringify(totalPrice))
-        formData.append('pickStationId', JSON.stringify(addressCodeDelivery.districtName))
-        formData.append('serviceId', JSON.stringify(serviceDelivery))
-        let serviceTypeId: number = 0
-        listServiceDelivery.map((s: any, idx) => {
-          if (s.service_id == serviceDelivery) {
-            serviceTypeId = Number(s.service_type_id)
-          }
-        })
-        formData.append('serviceTypeId', JSON.stringify(serviceTypeId))
-
-        const rsOrderVnpay = await orderVnpay(formData, totalPrice)
-        if (rsOrderVnpay) {
-          console.log(rsOrderVnpay.data)
-          window.location.href = rsOrderVnpay.data
-        }
+      const rsOrderCod = await orderCod({
+        codeOrder: codeOrder,
+        fee: fee,
+        provinceAddress: addressNameDelivery.provinceName,
+        districtAddress: addressNameDelivery.districtName,
+        wardAddress: addressNameDelivery.districtName,
+        streetAddress: addressNameDelivery.street,
+        phone: phoneDelivery,
+        name: nameDelivery,
+        couponId: couponChoose?.id
+      })
+      if (rsOrderCod && rsOrderCod.status === 201) {
+        toast.success('Thanh toán thành công')
+        getCountCart()
       }
       dispatch(loading(false))
     } catch (error) {
@@ -348,51 +340,95 @@ export default function ListCart() {
     }
   }
 
-  const fetchCreateOrderGHN = async () => {
+  const handleOrderOfVNPay = async () => {
     try {
+      const totalPrice =
+        cartItems &&
+        cartItems?.reduce((accumulator, currentValue) => {
+          return accumulator + currentValue.sellPrice * currentValue.quantity
+        }, 0) +
+          fee -
+          caclCouponPrice()
+      const formData = new FormData()
+      formData.append('provinceAddress', addressNameDelivery.provinceName)
+      formData.append('districtAddress', addressNameDelivery.districtName)
+      formData.append('wardAddress', addressNameDelivery.districtName)
+      formData.append('streetAddress', addressNameDelivery.street)
+      formData.append('name', nameDelivery)
+      formData.append('phone', phoneDelivery)
+      formData.append('toWardCode', JSON.stringify(addressCodeDelivery.wardName))
+      formData.append('toDistrictId', JSON.stringify(addressCodeDelivery.districtName))
+      formData.append('codAmount', JSON.stringify(totalPrice))
+      formData.append('pickStationId', JSON.stringify(addressCodeDelivery.districtName))
+      formData.append('serviceId', JSON.stringify(serviceDelivery))
+      formData.append('couponId', JSON.stringify(couponChoose?.id))
+      formData.append('fee', JSON.stringify(fee))
       let serviceTypeId: number = 0
-      listServiceDelivery.map((s: any, idx) => {
+      listServiceDelivery.map((s: any) => {
         if (s.service_id == serviceDelivery) {
           serviceTypeId = Number(s.service_type_id)
         }
       })
-
-      const dataItems: any = []
-      let sumAmount = 0
-      cartItems.map((p, idx) => {
-        sumAmount = sumAmount + p.sellPrice * p.quantity
-        const item = {
-          name: `${p.name} ${p.color} ${p.storageCapacity}`,
-          code: JSON.stringify(p.id),
-          quantity: p.quantity,
-          price: p.sellPrice,
-          length: 12,
-          width: 12,
-          height: 12,
-          weight: 1200,
-          category: {
-            level1: 'điện thoại'
-          }
-        }
-        dataItems.push(item)
-      })
-
-      const data: createOrder = {
-        to_name: nameDelivery,
-        to_phone: phoneDelivery,
-        to_address: addressNameDelivery.street,
-        to_ward_code: JSON.stringify(addressCodeDelivery.wardName),
-        to_district_id: addressCodeDelivery.districtName,
-        service_id: serviceDelivery,
-        service_type_id: serviceTypeId,
-        cod_amount: sumAmount,
-        items: dataItems
+      formData.append('serviceTypeId', JSON.stringify(serviceTypeId))
+      const rsOrderVnpay = await orderVnpay(formData, totalPrice)
+      if (rsOrderVnpay) {
+        console.log(rsOrderVnpay.data)
+        window.location.href = rsOrderVnpay.data
       }
-      const apicreateOrder = await createOrderGHN(data)
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
-      if (apicreateOrder && apicreateOrder.status == 200) {
-        // console.log(apicreateOrder.data.data.order_code)
-        await handleOrder(apicreateOrder.data.data.order_code)
+  const fetchCreateOrderGHN = async () => {
+    try {
+      if (typePayment === 'cod') {
+        let serviceTypeId: number = 0
+        listServiceDelivery.map((s: any) => {
+          if (s.service_id == serviceDelivery) {
+            serviceTypeId = Number(s.service_type_id)
+          }
+        })
+
+        const dataItems: any = []
+        let sumAmount = 0
+        cartItems.map((p) => {
+          sumAmount = sumAmount + p.sellPrice * p.quantity
+          const item = {
+            name: `${p.name} ${p.color} ${p.storageCapacity}`,
+            code: JSON.stringify(p.id),
+            quantity: p.quantity,
+            price: p.sellPrice,
+            length: 12,
+            width: 12,
+            height: 12,
+            weight: 1200,
+            category: {
+              level1: 'điện thoại'
+            }
+          }
+          dataItems.push(item)
+        })
+        sumAmount = sumAmount + fee - caclCouponPrice()
+        const data: createOrder = {
+          to_name: nameDelivery,
+          to_phone: phoneDelivery,
+          to_address: addressNameDelivery.street,
+          to_ward_code: JSON.stringify(addressCodeDelivery.wardName),
+          to_district_id: addressCodeDelivery.districtName,
+          service_id: serviceDelivery,
+          service_type_id: serviceTypeId,
+          cod_amount: sumAmount,
+          items: dataItems
+        }
+        const apicreateOrder = await createOrderGHN(data)
+
+        if (apicreateOrder && apicreateOrder.status == 200) {
+          // console.log(apicreateOrder.data.data.order_code)
+          await handleOrder(apicreateOrder.data.data.order_code)
+        }
+      } else {
+        handleOrderOfVNPay()
       }
     } catch (error) {
       console.log(error)
@@ -408,6 +444,27 @@ export default function ListCart() {
       console.log(error)
     }
   }
+
+  const caclCouponPrice = () => {
+    if (!couponChoose) {
+      return 0
+    }
+    if (couponChoose?.typeCoupon == 'fixed') {
+      return couponChoose.couponValue
+    } else {
+      const couponPrice =
+        cartItems?.reduce((accumulator, currentValue) => {
+          return accumulator + currentValue.sellPrice * currentValue.quantity
+        }, 0) + fee
+      const discoutPrice = (couponPrice * couponChoose.couponValue) / 100
+      return Math.round(discoutPrice / 1000) * 1000
+    }
+  }
+
+  console.log(caclCouponPrice())
+
+  // console.log(caclCouponPrice())
+
   return (
     <div className='container grid grid-cols-12 gap-3 mt-5'>
       {showModalOutStock && <ModalInformInStock setShowModal={setShowModalOutStock} showModal={showModalOutStock} />}
@@ -476,9 +533,11 @@ export default function ListCart() {
                             <p className='text-xl text-red-600 font-bold'>
                               {formatToVND(item.sellPrice * item.quantity)}
                             </p>
-                            <p className='text-end line-through text-gray-500'>
-                              {formatToVND(item.originalPrice * item.quantity)}
-                            </p>
+                            {item.originalPrice !== item.sellPrice && (
+                              <p className='text-end line-through text-gray-500'>
+                                {formatToVND(item.originalPrice * item.quantity)}
+                              </p>
+                            )}
                           </div>
                         </div>
                         {outStock && (
@@ -609,6 +668,26 @@ export default function ListCart() {
                 })}
             </select>
           </div>
+          <div className='flex gap-5 mt-5 items-center'>
+            <h3>Voucher: </h3>
+            {!couponChoose ? (
+              <button
+                onClick={() => setShowModalCoupon(true)}
+                className='border border-gray-500 py-2 px-3 rounded-lg active:scale-90 duration-150'
+              >
+                Chọn voucher
+              </button>
+            ) : (
+              <button
+                onClick={() => setShowModalCoupon(true)}
+                className='border border-gray-500 py-2 px-3 rounded-lg active:scale-90 duration-150'
+              >
+                {couponChoose.typeCoupon == 'fixed'
+                  ? `Giảm ${formatToVND(couponChoose.couponValue)}`
+                  : `Giảm ${couponChoose.couponValue} %`}
+              </button>
+            )}
+          </div>
           <div className='mt-5'>
             <h3>Phương thức thanh toán: </h3>
             <select
@@ -659,7 +738,9 @@ export default function ListCart() {
                   ? formatToVND(
                       cartItems?.reduce((accumulator, currentValue) => {
                         return accumulator + currentValue.sellPrice * currentValue.quantity
-                      }, 0) + fee
+                      }, 0) +
+                        fee -
+                        caclCouponPrice()
                     )
                   : formatToVND(0)}
               </span>
@@ -672,6 +753,9 @@ export default function ListCart() {
             Thanh toán
           </button>
         </div>
+      )}
+      {showModalCoupon && (
+        <ModalListCoupon setShowModal={setShowModalCoupon} setCoupon={setCouponChoose} coupons={listCoupon} />
       )}
     </div>
   )

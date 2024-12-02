@@ -5,8 +5,8 @@ import { checkOutStockItem, deleteCartItem, getListCart, updateQuantityCartItem 
 import { toast } from 'react-toastify'
 import { cartList } from '../../slices/cartSlice'
 import { Link } from 'react-router-dom'
-import { getAllDitrict, getAllProvince, getAllWard, getFee } from '../../apis/address.api'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { getAllDitrict, getAllProvince, getAllWard } from '../../apis/address.api'
+import { useEffect, useState } from 'react'
 import { cartItem } from '../../types/cart.type'
 import { orderCod, orderVnpay } from '../../apis/order.api'
 import formatToVND from '../../helpers/currencyFormatter'
@@ -58,10 +58,6 @@ interface createOrder {
   items: cartItem[]
 }
 
-interface serviceDelivery {
-  service_id: number
-  service_type_id: number
-}
 export default function ListCart() {
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated)
   const user = useSelector((state: RootState) => state.auth.user)
@@ -289,7 +285,7 @@ export default function ListCart() {
   const handleCalculateFee = async () => {
     try {
       let serviceTypeId: number = 0
-      listServiceDelivery.map((s: any, idx) => {
+      listServiceDelivery.map((s: any) => {
         if (s.service_id == serviceDelivery) {
           serviceTypeId = Number(s.service_type_id)
         }
@@ -368,7 +364,7 @@ export default function ListCart() {
       formData.append('couponId', JSON.stringify(couponChoose?.id))
       formData.append('fee', JSON.stringify(fee))
       let serviceTypeId: number = 0
-      listServiceDelivery.map((s: any, idx) => {
+      listServiceDelivery.map((s: any) => {
         if (s.service_id == serviceDelivery) {
           serviceTypeId = Number(s.service_type_id)
         }
@@ -388,7 +384,7 @@ export default function ListCart() {
     try {
       if (typePayment === 'cod') {
         let serviceTypeId: number = 0
-        listServiceDelivery.map((s: any, idx) => {
+        listServiceDelivery.map((s: any) => {
           if (s.service_id == serviceDelivery) {
             serviceTypeId = Number(s.service_type_id)
           }
@@ -396,7 +392,7 @@ export default function ListCart() {
 
         const dataItems: any = []
         let sumAmount = 0
-        cartItems.map((p, idx) => {
+        cartItems.map((p) => {
           sumAmount = sumAmount + p.sellPrice * p.quantity
           const item = {
             name: `${p.name} ${p.color} ${p.storageCapacity}`,
