@@ -1,4 +1,4 @@
-import { Link, Outlet, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import Footer from '../../components/Footer'
 import Header from '../../components/Header'
 import { useEffect, useState } from 'react'
@@ -8,14 +8,31 @@ import { SiZalo } from 'react-icons/si'
 import { FiPhoneCall } from 'react-icons/fi'
 import ChatBox from '../../components/ChatBox'
 import { IoChatbubbleEllipsesSharp } from 'react-icons/io5'
-
+import { FaRobot } from 'react-icons/fa'
 interface Props {
   children?: React.ReactNode
   title: string
 }
+
+interface Message {
+  id: number
+  text: string
+  sender: 'user' | 'other'
+  timestamp: string
+  avatar: JSX.Element
+}
 export default function MainLayout({ children, title }: Props) {
   const location = useLocation()
   const [showChat, setShowChat] = useState(false)
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: 0,
+      text: 'Chào bạn, bạn cần tôi hỗ trợ gì ạ',
+      sender: 'other',
+      timestamp: new Date().toISOString(),
+      avatar: <FaRobot className='w-8 h-8 rounded-full object-cover mx-2' />
+    }
+  ])
   useEffect(() => {
     document.title = title
   }, [location.pathname])
@@ -36,16 +53,20 @@ export default function MainLayout({ children, title }: Props) {
           <LiaExchangeAltSolid />
         </div>
       </div>
-      {children}
+      <div className='min-h-[80vh]'>{children}</div>
 
-      {showChat ? (
-        <ChatBox setShowChat={setShowChat} showChat={showChat} />
-      ) : (
-        <button className='fixed bottom-5 right-5' onClick={() => setShowChat(true)}>
-          <IoChatbubbleEllipsesSharp className='text-6xl text-indigo-600 z-20 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2' />
-          <span className='block w-[45px] h-[45px] text-indigo-600 rounded-full animate-ping '></span>
-        </button>
-      )}
+      {
+        !showChat ? (
+          <button className='fixed bottom-5 right-5' onClick={() => setShowChat(true)}>
+            <IoChatbubbleEllipsesSharp className='text-6xl text-indigo-600 z-50 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2' />
+            <span className='block w-[45px] h-[45px] bg-indigo-400 rounded-full animate-ping '></span>
+          </button>
+        ) : (
+          <ChatBox setShowChat={setShowChat} showChat={showChat} messages={messages} setMessages={setMessages} />
+        )
+        // <div className='w-full absolute h-[100px] bg-black top-0 left-0'></div>
+        // </div>
+      }
       <Footer />
     </div>
   )
