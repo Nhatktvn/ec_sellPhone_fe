@@ -4,6 +4,7 @@ import { Navigate } from 'react-router-dom'
 
 interface Props {
   children?: React.ReactNode
+  role: string
 }
 const ProtectedRouter = ({ children }: Props) => {
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated)
